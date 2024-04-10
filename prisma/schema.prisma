@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model administradores {
+  id            Int    @id @default(autoincrement())
+  correo        String @unique
+  contrasenia   String @db.VarChar(100)
+  id_invitacion Int    @unique
+
+  invitacion invitaciones @relation(fields: [id_invitacion], references: [id])
+}
+
+model invitaciones {
+  id                Int              @id @default(autoincrement())
+  codigo_invitacion String           @db.VarChar(100)
+  usado             Boolean          @default(false)
+  administradores   administradores?
+}
+
+model vehiculos {
+  id                     Int                      @id @default(autoincrement())
+  placa                  String                   @unique
+  marca                  String                   @db.VarChar(300)
+  modelo                 String                   @db.VarChar(300)
+  VIN                    String                   @unique @db.VarChar(300)
+  fecha_compra           DateTime                 @db.Date()
+  costo                  Int
+  url_foto               String                   @db.VarChar(300)
+  fecha_registro         DateTime                 @default(now())
+  asignaciones           asignaciones[]
+  historial_asignaciones historial_asignaciones[]
+}
+
+model conductores {
+  id                     Int                      @id @default(autoincrement())
+  CURP                   String                   @unique @db.VarChar(70)
+  nombres                String                   @db.VarChar(300)
+  apellido_paterno       String                   @db.VarChar(300)
+  apellido_materno       String                   @db.VarChar(300)
+  fecha_nacimiento       DateTime                 @db.Date()
+  direccion              String                   @db.VarChar(400)
+  salario                Int
+  numero_licencia        Int                      @unique
+  fecha_registro         DateTime                 @default(now())
+  asignaciones           asignaciones[]
+  historial_asignaciones historial_asignaciones[]
+}
+
+model asignaciones {
+  id           Int @id @default(autoincrement())
+  id_conductor Int
+  id_vehiculo  Int
+
+  activo Boolean @default(true)
+  rutas  rutas[]
+
+  conductor conductores @relation(fields: [id_conductor], references: [id])
+  vehiculo  vehiculos   @relation(fields: [id_vehiculo], references: [id])
+}
+
+model historial_asignaciones {
+  id                 Int      @id @default(autoincrement())
+  id_asignacion      Int
+  id_conductor       Int
+  id_vehiculo        Int
+  fecha_modificacion DateTime @default(now())
+
+  conductor conductores @relation(fields: [id_conductor], references: [id])
+  vehiculo  vehiculos   @relation(fields: [id_vehiculo], references: [id])
+}
+
+model rutas {
+  id                   Int      @id @default(autoincrement())
+  nombre_ruta          String   @db.VarChar(120)
+  long_empresa         String   @db.VarChar(200)
+  lat_empresa          String   @db.VarChar(200)
+  long_destino         String   @db.VarChar(200)
+  lat_destino          String   @db.VarChar(200)
+  fecha_recorrido      DateTime
+  fecha_creacion       DateTime @default(now())
+  exitoso              Boolean
+  descripcion_problema String   @db.Text()
+  comentarios          String   @db.Text()
+  id_asignacion        Int
+
+  asignacion asignaciones @relation(fields: [id_asignacion], references: [id])
+}
